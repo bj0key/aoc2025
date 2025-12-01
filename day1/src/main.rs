@@ -1,3 +1,5 @@
+mod constify;
+
 fn parse_input(input: &str) -> Vec<i16> {
     input
         .lines()
@@ -65,6 +67,10 @@ fn main() {
     let p1 = part1(&input);
     println!("Part 1: {p1}");
 
+    println!("Part 1 (const): {}", constify::PART_1_SOLUTION);
+
     let p2 = part2(&input);
     println!("Part 2: {p2}");
+
+    println!("Part 2 (const): {}", constify::PART_2_SOLUTION);
 }
