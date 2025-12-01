@@ -2,15 +2,12 @@ fn parse_input(input: &str) -> Vec<i16> {
     input
         .lines()
         .map(|line| {
-            let (dir, amount): (char, i16) = {
-                let mut iter = line.chars();
-                let first = iter.next().unwrap();
-                (first, iter.as_str().parse().unwrap())
-            };
+            let dir = line.as_bytes()[0];
+            let amount: i16 = line[1..].parse().unwrap();
             match dir {
-                'L' => -amount,
-                'R' => amount,
-                _ => unreachable!(),
+                b'R' => amount,
+                b'L' => -amount,
+                _ => unreachable!("Line should always start with L or R"),
             }
         })
         .collect()
