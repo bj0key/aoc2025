@@ -13,7 +13,7 @@ fn parse_input(input: &str) -> Vec<i16> {
         .collect()
 }
 
-fn part1(input: &[i16]) -> u64 {
+fn part1(input: &[i16]) -> i16 {
     let mut dial = 50;
     let mut zeros = 0;
     for &rot in input {
@@ -25,7 +25,7 @@ fn part1(input: &[i16]) -> u64 {
     zeros
 }
 
-fn part2(input: &[i16]) -> u64 {
+fn part2(input: &[i16]) -> i16 {
     let mut dial = 50;
     let mut zeroes = 0;
     for &rot in input {
@@ -36,11 +36,11 @@ fn part2(input: &[i16]) -> u64 {
             0 => 1,
 
             // We went above 99
-            100.. => new_dial.div_euclid(100).try_into().unwrap(),
+            100.. => new_dial.div_euclid(100),
 
             // We went below 0
             ..0 => {
-                let mut passed = (new_dial - 1).div_euclid(100).abs().try_into().unwrap();
+                let mut passed = (new_dial - 1).div_euclid(100).abs();
                 // fixes an annoying off-by-one if we started out on a zero
                 if dial == 0 {
                     passed -= 1;
@@ -61,6 +61,7 @@ fn part2(input: &[i16]) -> u64 {
 fn main() {
     let raw_input = include_str!("../input");
     let input = parse_input(raw_input);
+
     let p1 = part1(&input);
     println!("Part 1: {p1}");
 
