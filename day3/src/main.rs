@@ -9,7 +9,12 @@ fn parse_input(input: &str) -> Vec<Vec<u8>> {
         .collect()
 }
 
-fn next_biggest(bank: &[u8], headroom: usize) -> (u8, &[u8]) {
+// Hand-wrote my own function to find the max + max idx,
+// since .iter().max() returns the last maximum by default,
+// plus we know 9 is the biggest number and so can early return once
+// we find one.
+
+fn next_biggest(bank: &[u8], headroom: usize) -> (u8, usize) {
     let mut max_idx = 0;
     let mut max = 0;
     for (idx, val) in bank[..=bank.len() - headroom].iter().copied().enumerate() {
@@ -21,15 +26,15 @@ fn next_biggest(bank: &[u8], headroom: usize) -> (u8, &[u8]) {
             }
         }
     }
-    (max, &bank[(max_idx + 1)..])
+    (max, max_idx)
 }
 
 fn biggest_in_bank(mut bank: &[u8], mut len: usize) -> u64 {
     let mut total = 0;
     while len > 0 {
         total *= 10;
-        let max;
-        (max, bank) = next_biggest(bank, len);
+        let (max, max_idx) = next_biggest(bank, len);
+        bank = &bank[max_idx + 1..];
         total += max as u64;
         len -= 1;
     }
