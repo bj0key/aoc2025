@@ -1,4 +1,4 @@
-type Range = std::ops::RangeInclusive<u64>;
+type Range = (u64, u64);
 
 fn parse(input: &str) -> (Vec<Range>, Vec<u64>) {
     let (ranges, ingredients) = input.split_once("\n\n").unwrap();
@@ -7,7 +7,7 @@ fn parse(input: &str) -> (Vec<Range>, Vec<u64>) {
         .lines()
         .map(|l| {
             let (start, end) = l.split_once('-').unwrap();
-            start.parse().unwrap()..=end.parse().unwrap()
+            (start.parse().unwrap(), end.parse().unwrap())
         })
         .collect();
 
@@ -19,8 +19,8 @@ fn parse(input: &str) -> (Vec<Range>, Vec<u64>) {
 fn part1(ranges: &[Range], ingredients: &[u64]) -> u64 {
     let mut total = 0;
     for i in ingredients {
-        for r in ranges {
-            if r.contains(i) {
+        for (start, end) in ranges {
+            if start <= i && i <= end {
                 total += 1;
                 break;
             }
@@ -29,11 +29,13 @@ fn part1(ranges: &[Range], ingredients: &[u64]) -> u64 {
     total
 }
 
-fn try_merge_ranges(r1: &Range, r2: &Range) -> Option<Range> {
-    if *r1.start() <= *r2.end() && *r2.start() <= *r1.end() + 1 {
-        let start = *r1.start().min(r2.start());
-        let end = *r1.end().max(r2.end());
-        Some(start..=end)
+fn try_merge_ranges(r1: Range, r2: Range) -> Option<Range> {
+    let (s1, e1) = r1;
+    let (s2, e2) = r2;
+    if s1 <= e2 && s2 <= e1 {
+        let start = u64::min(s1, s2);
+        let end = u64::max(e1, e2);
+        Some((start, end))
     } else {
         None
     }
@@ -41,7 +43,7 @@ fn try_merge_ranges(r1: &Range, r2: &Range) -> Option<Range> {
 
 fn find_mergeable<'a>(
     ranges: &'a mut [Range],
-    to_merge: &Range,
+    to_merge: Range,
     ignore_idx: usize,
 ) -> Option<(&'a mut Range, usize, Range)> {
     ranges
@@ -51,7 +53,7 @@ fn find_mergeable<'a>(
             // println!("{idx} {ignore_idx}");
             if idx == ignore_idx {
                 None
-            } else if let Some(merged) = try_merge_ranges(r, to_merge) {
+            } else if let Some(merged) = try_merge_ranges(*r, to_merge) {
                 Some((r, idx, merged))
             } else {
                 None
@@ -63,19 +65,15 @@ fn find_mergeable<'a>(
 fn part2(ranges: &[Range]) -> u64 {
     let mut merged = Vec::new();
     for r in ranges {
-        if let Some((m, idx, new)) = find_mergeable(&mut merged, r, usize::MAX) {
+        if let Some((m, idx, new)) = find_mergeable(&mut merged, *r, usize::MAX) {
             *m = new;
             let mut to_merge = m.clone();
             let mut to_merge_idx = idx;
 
-            while let Some((m, idx2, new)) = find_mergeable(&mut merged, &to_merge, to_merge_idx) {
-                *m = new.clone();
-                merged.remove(to_merge_idx);
-                to_merge_idx = if idx2 > to_merge_idx {
-                    idx2 - 1
-                } else {
-                    idx2
-                };
+            while let Some((m, idx2, new)) = find_mergeable(&mut merged, to_merge, to_merge_idx) {
+                *m = new;
+                merged.swap_remove(to_merge_idx);
+                to_merge_idx = idx2;
                 to_merge = new;
             }
         } else {
@@ -83,7 +81,7 @@ fn part2(ranges: &[Range]) -> u64 {
         }
     }
 
-    merged.iter().map(|r| r.end() - r.start() + 1).sum()
+    merged.iter().map(|(start, end)| end - start + 1).sum()
 }
 
 fn main() {
