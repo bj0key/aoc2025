@@ -41,20 +41,16 @@ fn try_merge_ranges(r1: Range, r2: Range) -> Option<Range> {
     }
 }
 
-fn find_mergeable<'a>(
-    ranges: &'a mut [Range],
-    to_merge: Range,
-    ignore_idx: usize,
-) -> Option<(&'a mut Range, usize, Range)> {
+fn find_mergeable(ranges: &[Range], to_merge: Range, ignore_idx: usize) -> Option<(usize, Range)> {
     ranges
-        .iter_mut()
+        .iter()
         .enumerate()
         .filter_map(|(idx, r)| {
             // println!("{idx} {ignore_idx}");
             if idx == ignore_idx {
                 None
             } else if let Some(merged) = try_merge_ranges(*r, to_merge) {
-                Some((r, idx, merged))
+                Some((idx, merged))
             } else {
                 None
             }
@@ -63,25 +59,25 @@ fn find_mergeable<'a>(
 }
 
 fn part2(ranges: &[Range]) -> u64 {
-    let mut merged = Vec::new();
+    let mut merged_ranges = Vec::new();
     for r in ranges {
-        if let Some((m, idx, new)) = find_mergeable(&mut merged, *r, usize::MAX) {
-            *m = new;
-            let mut to_merge = m.clone();
-            let mut to_merge_idx = idx;
-
-            while let Some((m, idx2, new)) = find_mergeable(&mut merged, to_merge, to_merge_idx) {
-                *m = new;
-                merged.swap_remove(to_merge_idx);
-                to_merge_idx = idx2;
-                to_merge = new;
+        if let Some((idx, mut merged)) = find_mergeable(&mut merged_ranges, *r, usize::MAX) {
+            merged_ranges[idx] = merged;
+            while let Some((new_idx, new_merged)) = find_mergeable(&mut merged_ranges, merged, idx)
+            {
+                merged_ranges[idx] = new_merged;
+                merged_ranges.swap_remove(new_idx);
+                merged = new_merged;
             }
         } else {
-            merged.push(r.clone())
+            merged_ranges.push(*r)
         }
     }
 
-    merged.iter().map(|(start, end)| end - start + 1).sum()
+    merged_ranges
+        .iter()
+        .map(|(start, end)| end - start + 1)
+        .sum()
 }
 
 fn main() {
