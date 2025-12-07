@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 fn parse(input: &str) -> (usize, Vec<Vec<bool>>) {
     let mut lines = input.lines();
     let first = lines.next().unwrap();
@@ -53,6 +55,41 @@ fn part2(start: usize, splitters: &[Vec<bool>]) -> u64 {
     timelines.iter().sum()
 }
 
+fn part2_dynamic(
+    start: usize,
+    splitters: &[Vec<bool>],
+    cache: &mut HashMap<(usize, usize, usize), u64>,
+) -> u64 {
+    let key = (start, splitters.as_ptr() as _, splitters.len());
+    if let Some(n) = cache.get(&key) {
+        return *n;
+    }
+
+    let n = match splitters {
+        [] => 1,
+        [first, rest @ ..] => {
+            if first[start] {
+                let lhs = if start > 0 {
+                    part2_dynamic(start - 1, rest, cache)
+                } else {
+                    0
+                };
+                let rhs = if start < first.len() - 1 {
+                    part2_dynamic(start + 1, rest, cache)
+                } else {
+                    0
+                };
+                lhs + rhs
+            } else {
+                part2_dynamic(start, rest, cache)
+            }
+        }
+    };
+
+    cache.insert(key, n);
+    n
+}
+
 fn main() {
     let raw_input = include_str!("../input");
     let (start, splitters) = parse(raw_input);
@@ -61,4 +98,8 @@ fn main() {
 
     let p2 = part2(start, &splitters);
     println!("Part 2: {p2}");
+
+    let mut cache = HashMap::new();
+    let p2d = part2_dynamic(start, &splitters, &mut cache);
+    println!("Part 2 (dynamic): {p2d}");
 }
