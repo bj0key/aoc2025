@@ -60,7 +60,6 @@ fn part1(junctions: &[Junction]) -> u64 {
         combos
     };
     let mut circuits: Vec<u16> = (0..junctions.len().try_into().unwrap()).collect();
-    println!("{}", idx_combos.len());
     for i in 0..1000 {
         let [cx, cy] = <[_; 2]>::from(idx_combos[i]).map(|n| circuits[n as usize]);
         if cx != cy {
@@ -86,7 +85,6 @@ fn part2(junctions: &[Junction]) -> u64 {
         combos
     };
     let mut circuits: Vec<u16> = (0..junctions.len().try_into().unwrap()).collect();
-    println!("{}", idx_combos.len());
     for combo in idx_combos.iter() {
         let [x, y] = <[_; 2]>::from(*combo).map(|n| n as usize);
         let [cx, cy] = [circuits[x], circuits[y]];
@@ -96,7 +94,6 @@ fn part2(junctions: &[Junction]) -> u64 {
         if all_merged(&circuits) {
             let jx = &junctions[x];
             let jy = &junctions[y];
-            println!("Final junctions: {jx:?} {jy:?}");
             return jx.x * jy.x;
         }
     }
